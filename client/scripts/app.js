@@ -1,5 +1,5 @@
- // global $, _, moment 
- // exported app 
+ // global $, _, moment
+ // exported app
 
 //convention to explicitly say that you're creating a global variable
 var app = window.app;
@@ -63,21 +63,6 @@ app = {
     app.getRooms();
   },
 
-  sendMessage: function(data) {
-    $.ajax({
-      url: 'http://127.0.0.1:3000/',
-      contentType: 'application/json',
-      type: 'POST',
-      data: JSON.stringify(data),
-      success: function() {
-        console.log('send success');
-      },
-      error: function() {
-        console.log('send error');
-      }
-    });
-  },
-
   getRooms: function(){
     // must preserve context of app for asynchronous callbacks
     var that = app;
@@ -102,6 +87,48 @@ app = {
       that.getRooms();
     }, 5000);
     console.log('getRooms setTimeout called');
+  },
+  setRoomEl: _.template(
+    "<option class='roomSelectorOpt'><%- room %></option>"
+  ),
+
+  renderRooms: function(data) {
+    //populate room menu with current rooms of past 100 messages
+    var rooms =  _.chain(data.results)
+      .map(function(result){
+        return result.roomname;
+      })
+      .uniq()
+      // .slice(0, 10)
+      .value()
+      .concat(app.newRooms);
+
+      //TODO - filter <script> tags in room names, below code doesn't filter
+    // rooms = _.reject(rooms, function(roomname) {
+    //     return _.contains(roomname, "4chan")
+    //   });
+
+    $('.roomSelectorOpt').remove();
+    app.$roomSelect.append(app.setRoomEl({ room: 'Show All Rooms' }));
+
+    _.each(rooms, function(room){
+      app.$roomSelect.append(app.setRoomEl({ room: room }));
+    }, app);
+  },
+
+  sendMessage: function(data) {
+    $.ajax({
+      url: 'http://127.0.0.1:3000/',
+      contentType: 'application/json',
+      type: 'POST',
+      data: JSON.stringify(data),
+      success: function() {
+        console.log('send success');
+      },
+      error: function() {
+        console.log('send error');
+      }
+    });
   },
 
   getMessages: function(room){
@@ -139,33 +166,6 @@ app = {
     "</div>"
   ),
 
-  setRoomEl: _.template(
-    "<option class='roomSelectorOpt'><%- room %></option>"
-  ),
-
-  renderRooms: function(data) {
-    //populate room menu with current rooms of past 100 messages
-    var rooms =  _.chain(data.results)
-      .map(function(result){
-        return result.roomname;
-      })
-      .uniq()
-      // .slice(0, 10)
-      .value()
-      .concat(app.newRooms);
-
-      //TODO - filter <script> tags in room names, below code doesn't filter
-    // rooms = _.reject(rooms, function(roomname) {
-    //     return _.contains(roomname, "4chan")
-    //   });
-
-    $('.roomSelectorOpt').remove();
-    app.$roomSelect.append(app.setRoomEl({ room: 'Show All Rooms' }));
-
-    _.each(rooms, function(room){
-      app.$roomSelect.append(app.setRoomEl({ room: room }));
-    }, app);
-  },
 
   renderMessages: function(data) {
     $('#main > .message').remove();
