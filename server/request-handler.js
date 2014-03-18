@@ -21,7 +21,8 @@ var defaultCorsHeaders = {
   "access-control-max-age": 10 // Seconds.
 };
 
-exports.handleRequest = function(req, res) {
+
+exports.handler = function(req, res) {
   /* the 'request' argument comes from nodes http module. It includes info about the
   request - such as what URL the browser is requesting. */
 
@@ -30,43 +31,51 @@ exports.handleRequest = function(req, res) {
 
   var headers = defaultCorsHeaders;
   var statusCode = 404;
+  var body = '';
 
+  var sendResponse = function(){
+
+    var obj = {
+      results: server.data
+    };
+
+    res.writeHead(statusCode, headers);
+
+    res.end(JSON.stringify(obj));
+  };
   // headers['Content-Type'] = "text/plain";
   headers['Content-Type'] = "application/json";
 
   console.log("Serving request type " + req.method + " for url " + req.url);
 
-  if(req.method === "GET" && (req.url === "/log" || req.url === "/classes/messages")){
+  var roomMatch = req.url.match(/^\/classes\/room.+/);
+  if(req.method === "GET" && (roomMatch || req.url === "/log" || req.url === "/classes/messages")){
     statusCode = 200;
-  }else if(req.method === "POST" && req.url === "/send" || req.url === "/classes/messages"){
-    var body = '';
-    req.on('data', function(data){
-      server.data.unshift(JSON.parse(data));
-      console.log(JSON.stringify(data));
-      res.write(JSON.stringify(data));
-    });
+    sendResponse();
+  }else if(req.method === "POST" && (roomMatch || req.url === "/send" || req.url === "/classes/messages")){
     statusCode = 201;
+
+    req.on('data', function(data){
+      body+=data;
+    });
+
+    req.on('end', function(){
+      server.data.unshift(JSON.parse(body));
+      sendResponse();
+    });
   }else{
     statusCode = 404;
+    sendResponse();
   }
-
-  var obj = {
-    results: server.data
-  };
 
 
   /* Without this line, this server wouldn't work. See the note
    * below about CORS. */
 
   /* .writeHead() tells our server what HTTP status code to send back */
-  res.writeHead(statusCode, headers);
-
-  // Call after writeHead so headers are already written
-  res.write(JSON.stringify(obj));
   /* Make sure to always call response.end() - Node will not send
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows
    * up in the browser.*/
-  res.end();
 };
 
