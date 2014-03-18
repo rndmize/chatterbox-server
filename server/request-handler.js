@@ -1,4 +1,6 @@
+var server = require("./basic-server.js");
 var http = require("http");
+var url = require("url");
 
 /* You should implement your request handler function in this file.
  * And hey! This is already getting passed to http.createServer()
@@ -27,21 +29,30 @@ exports.handleRequest = function(req, res) {
    * http://nodemanual.org/0.8.14/nodejs_ref_guide/http.html */
 
   var headers = defaultCorsHeaders;
+  var statusCode = 404;
 
   // headers['Content-Type'] = "text/plain";
   headers['Content-Type'] = "application/json";
 
   console.log("Serving request type " + req.method + " for url " + req.url);
 
-  if(req.method === 'GET'){
-
-  }else if(req.method === 'POST'){
-
+  if(req.method === "GET" && (req.url === "/log" || req.url === "/classes/messages")){
+    statusCode = 200;
+  }else if(req.method === "POST" && req.url === "/send" || req.url === "/classes/messages"){
+    var body = '';
+    req.on('data', function(data){
+      server.data.unshift(JSON.parse(data));
+      console.log(JSON.stringify(data));
+      res.write(JSON.stringify(data));
+    });
+    statusCode = 201;
+  }else{
+    statusCode = 404;
   }
 
-  var statusCode = 200;
-
-  var obj = JSON.stringify({});
+  var obj = {
+    results: server.data
+  };
 
 
   /* Without this line, this server wouldn't work. See the note
@@ -51,7 +62,7 @@ exports.handleRequest = function(req, res) {
   res.writeHead(statusCode, headers);
 
   // Call after writeHead so headers are already written
-  res.write(obj);
+  res.write(JSON.stringify(obj));
   /* Make sure to always call response.end() - Node will not send
    * anything back to the client until you do. The string you pass to
    * response.end() will be the body of the response - i.e. what shows

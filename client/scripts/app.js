@@ -118,7 +118,7 @@ app = {
 
   sendMessage: function(data) {
     $.ajax({
-      url: 'http://127.0.0.1:3000/',
+      url: 'http://127.0.0.1:3000/classes/messages/send',
       contentType: 'application/json',
       type: 'POST',
       data: JSON.stringify(data),
