@@ -63,6 +63,13 @@ exports.handler = function(req, res) {
       server.data.unshift(JSON.parse(body));
       sendResponse();
     });
+    //every initial request from app.js will be OPTIONS request because server domain is different
+    //from app.js domain. defaultCorsHeaders must be passed back to client so that subsequent
+    //GET or POST request will be accepted.
+  }else if(req.method === "OPTIONS"){
+    statusCode = 200;
+    res.writeHead(statusCode, headers);
+    res.end();
   }else{
     statusCode = 404;
     sendResponse();

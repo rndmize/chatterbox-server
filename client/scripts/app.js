@@ -67,13 +67,13 @@ app = {
     // must preserve context of app for asynchronous callbacks
     var that = app;
     $.ajax({
-      url: 'http://127.0.0.1:3000/',
+      url: 'http://127.0.0.1:3000/log',
       contentType: 'application/json',
       type: 'GET',
       data: {
         // TODO - possible to select these fields only?
         // keys: 'roomname',
-        order: '-createdAt'
+        // order: '-createdAt' //TODO - write sort function
       },
       success: function(data) {
         that.renderRooms(data);
@@ -118,7 +118,7 @@ app = {
 
   sendMessage: function(data) {
     $.ajax({
-      url: 'http://127.0.0.1:3000/classes/messages/send',
+      url: 'http://127.0.0.1:3000/send',
       contentType: 'application/json',
       type: 'POST',
       data: JSON.stringify(data),
@@ -135,12 +135,12 @@ app = {
     // must preserve context of app for asynchronous callbacks
     var that = app;
     $.ajax({
-      url: 'http://127.0.0.1:3000/',
+      url: 'http://127.0.0.1:3000/log',
       contentType: 'application/json',
       type: 'GET',
       data: {
-        order: '-createdAt',
-        where: {"roomname": room }
+        // order: '-createdAt',
+        // where: {"roomname": room }
       },
       success: function(data) {
         that.renderMessages(data);
